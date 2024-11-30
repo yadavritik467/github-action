@@ -2,6 +2,9 @@ name: React CI/CD
 
 on:
   push:
+    branches-ignore:
+      - main  # Ignore direct pushes to main branch
+  pull_request:  # Run on pull requests to main
     branches:
       - main
 
@@ -10,22 +13,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Step 2: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 16
 
+      # Step 3: Install dependencies
       - name: Install dependencies
         run: npm install
 
+      # Step 4: Build React app
       - name: Build React app
         run: npm run build
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build
+      # Step 5: Check build size
+      - name: Check build size
+        run: |
+          BUILD_SIZE=$(du -sk build | awk '{print $1}')
+          MAX_SIZE=50  # Size limit in KB
+          echo "Build size: ${BUILD_SIZE}KB"
+          if [ "$BUILD_SIZE" -gt "$MAX_SIZE" ]; then
+            echo "Build size exceeds limit (${MAX_SIZE}KB). Failing the build."
+            exit 1
+          fi
