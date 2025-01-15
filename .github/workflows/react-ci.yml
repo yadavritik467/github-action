@@ -3,8 +3,8 @@ name: React CI/CD
 on:
   push:
     branches-ignore:
-      - main  # Ignore direct pushes to main branch
-  pull_request:  # Run on pull requests to main
+      - main # Ignore direct pushes to main branch
+  pull_request: # Run on pull requests to main
     branches:
       - main
 
@@ -41,3 +41,10 @@ jobs:
             echo "Build size exceeds limit (${MAX_SIZE}KB). Failing the build."
             exit 1
           fi
+
+      # Step 7: Enforce build success
+      - name: Ensure successful build
+        if: failure()
+        run: |
+          echo "Build or tests failed. Fix errors before merging."
+          exit 1
